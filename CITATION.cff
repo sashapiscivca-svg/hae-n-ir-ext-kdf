@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this model, please cite it as below, and cite hae and the datasets (see NOTICE.md)."
+title: "hae-n-ir-ext-kdf: a real-time thermal person detector for search-and-rescue drones"
+type: software
+authors:
+  - name: "The hae authors"
+version: 1.0.0
+date-released: 2026-10-15
+license: MIT
+repository-code: "https://github.com/sashapiscivca-svg/hae-n-ir-ext-kdf"
+url: "https://huggingface.co/alexshynkarenk0/hae-n-ir-ext-kdf"
+keywords:
+  - search and rescue
+  - object detection
+  - thermal imaging
+  - drones
+  - real-time
+  - knowledge distillation
+  - Raspberry Pi
+abstract: >-
+  hae-n-ir-ext-kdf is a 54 k-parameter person detector for thermal (LWIR) aerial imagery, the real-time member of the hae family,
+  trained from scratch on openly licensed civilian datasets with knowledge distillation from a larger hae model, and fast enough
+  for live video on a Raspberry Pi Zero 2 W.
+references:
+  - type: software
+    title: "hae: an open thermal person detector for search-and-rescue drones"
+    authors:
+      - name: "The hae authors"
+    version: 1.0.0
+    url: "https://github.com/sashapiscivca-svg/hae"

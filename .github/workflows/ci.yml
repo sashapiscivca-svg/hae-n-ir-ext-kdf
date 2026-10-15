@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  model:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install the released hae package (runtime only, no PyTorch)
+        run: |
+          python -m pip install --upgrade pip
+          pip install "hae @ git+https://github.com/sashapiscivca-svg/hae@v1.0.0" pytest
+      - name: Checksums
+        run: cd models/hae-n-ir-ext-kdf && sha256sum -c SHA256SUMS
+      - name: Box counts on HIT-UAV frames with the committed int8 model (no downloads)
+        run: pytest -q tests
+      - name: Example and CLI
+        run: |
+          python examples/detect.py examples/frames/1-hituav-night-60m.png
+          HAE_MODELS=models hae info hae-n-ir-ext-kdf
+          hae predict models/hae-n-ir-ext-kdf/hae-n-ir-ext-kdf_lwir_int8.onnx examples/frames --json --project /tmp/runs

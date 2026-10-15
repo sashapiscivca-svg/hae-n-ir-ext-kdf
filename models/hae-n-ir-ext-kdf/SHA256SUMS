@@ -1,0 +1,5 @@
+a09dcf0997fdfb1dad1dc4261d1d9304b85516b451fd5a00a5bdca71fa9f26b1  config.json
+7215bba7da39d81c8331ab105e8825de6a9e8405da8ef75863a8bc607410b65f  hae-n-ir-ext-kdf.safetensors
+6764e7de8064bb1a03b619cd076825e4d9cb7c98e905d2523a8baf02c9134479  hae-n-ir-ext-kdf_lwir.onnx
+618dd247639b470f70810551f9d24e01774a3f3a4f0f5e5365779ce4cdeedf19  hae-n-ir-ext-kdf_lwir_int8.onnx
+9dbbe45055f53e7e0271b52c183c3c2b46d60f0857df86a0da61ec4a201dbf05  metrics.json

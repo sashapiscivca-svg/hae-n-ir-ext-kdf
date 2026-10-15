@@ -1,0 +1,43 @@
+# hae-n-ir-ext-kdf: ir-ext-kd: trained from scratch for 90 epochs on five thermal datasets with knowledge distillation from a larger teacher.
+# Training data: HIT-UAV (CC0-1.0); AIResQ Benchmark (CC-BY-4.0); WiSARD thermal (MIT); AOS thermal integral images (CC-BY-4.0);
+# RGB-LWIR Labeled Dataset for Air-based platforms (CC-BY-4.0). Reproduces models/hae-n-ir-ext-kdf/config.json["training"].
+# Reproduction limits in v1.1.0: scripts/prepare_data.py builds hituav_*, airesq_* and wisard_ir_* but not the aos_* and lwir_air_* sets,
+# and the teacher (hae-s-ir-ext, same architecture as hae-s-ir, trained on the same five-dataset mix without distillation) is not released.
+# Train your own teacher with this recipe minus the `distill` block and `size: s`, then point `distill.teacher` at its last.pt.
+name: hae-n-ir-ext-kdf
+train_sets:              # first = main set; weights = share of training batches (sum 1)
+  - {name: hituav_trainval, weight: 0.32}
+  - {name: airesq_train, weight: 0.16}
+  - {name: wisard_ir_train, weight: 0.40}
+  - {name: aos_train, weight: 0.08}
+  - {name: lwir_air_train, weight: 0.04}
+val_sets: [hituav_test, airesq_val, wisard_ir_val, aos_val, lwir_air_val]   # first = in-training validation; all = final evaluation
+eval_stride: 4           # in-training validation on every 4th frame
+train:                  # hae.train.TrainConfig fields
+  epochs: 90
+  crops_per_epoch: 4900
+  batch: 32
+  lr: 0.003
+  mode_probs: [0, 0, 1]           # both/rgb/lwir mode probabilities
+  eval_every: 30                  # full validation every N epochs
+  eval_modes: [lwir]
+  size: n
+  cfg_overrides: {fine_stem: true}
+  scale_range: [0.9, 2.4]         # train-time crop scale jitter (flight altitude)
+  eval_scale: 1.5                 # in-training evaluation scale (the released model recommends x1.0 for deployment)
+  copy_paste: 0.3                 # paste people with local background into crops
+  tnorm: true                     # per-frame thermal z-score normalisation
+  ctx: true                       # stride-32 context level
+  neg_decay: 1.0                  # soft negatives near targets
+  distill:                        # teacher -> student knowledge distillation (hae.distill)
+    teacher: teachers/hae-s-ir-ext.pt   # path to the teacher's last.pt (not released)
+    alpha: 0.5                    # cls: loss = 0.5 * hard QFL + 0.5 * QFL(max(GT target, teacher score))
+    tau: 1.0                      # temperature of the teacher target
+    comb: max
+    box_alpha: 0.3                # box distillation where teacher confidence > tau_box
+    tau_box: 0.3
+    small_boost: 1.0              # weight x2 near teacher peaks with small boxes
+    small_px: 16.0
+    peak_thr: 0.1
+    feat: true                    # feature imitation on the stride-4 fused features
+    teacher_scale_ratio: 1.3333   # the teacher sees the crop upscaled x1.333
