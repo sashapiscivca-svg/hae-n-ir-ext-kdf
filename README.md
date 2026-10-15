@@ -116,6 +116,7 @@ det = Detector(path)
 [`configs/hae-n-ir-ext-kdf.yaml`](configs/hae-n-ir-ext-kdf.yaml) records the exact recipe (90 epochs from scratch, five datasets, distillation settings) and works with hae's `scripts/train.py`. Reproduction is partial for now: hae's `prepare_data.py` builds the HIT-UAV, AIResQ and WiSARD sets but not AOS and RGB-LWIR Air, and the teacher is not released. The recipe file explains how to train your own teacher. Training took about 38 minutes of steps on one NVIDIA T4.
 
 ## Limitations
+- **int8 on x86 CPUs without VNNI.** On an AMD EPYC 7763 (AVX2 only) the int8 model found 13 people instead of 16 on a test frame with the balanced preset (sensitive: identical); on CPUs with AVX512-VNNI and in fp32 the counts are identical. This is how ONNX Runtime's int8 kernels behave without VNNI (u8×s8 products can saturate). On such PCs use the fp32 file `hae-n-ir-ext-kdf_lwir.onnx` (224 KB, fast enough on a PC). The Raspberry Pi (ARM) numbers above were measured with the int8 model on the Pi itself.
 
 - **Very small people.** At ×1.0, AP50 is 0.042 on AIResQ (people about 8 px). Use ×1.5 or hae-s-ir for high-altitude search.
 - **Open ground.** On HIT-UAV test it is 0.18–0.25 AP50 below hae-s-ir.

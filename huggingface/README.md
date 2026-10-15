@@ -103,6 +103,8 @@ hae v1.0.0 does not list this model by name, so pass the file path (or `root=` /
 
 **Without the hae package:** the input `t` is float32 `(B,1,H,W)` with H and W multiples of 32. Normalise each frame as `(t − mean) / max(std, 1)` on the 0..255 scale (and resize if you use a scale other than ×1.0). The outputs are `cls` `(B,1,H/4,W/4)` logits and `box` `(B,4,H/4,W/4)`. Decode by taking 3×3 local maxima of `sigmoid(cls)`; each box is `softplus(box) × 4` around the cell centre `((j+0.5)·4, (i+0.5)·4)`. Then divide by the scale.
 
+**Note.** On x86 CPUs without VNNI the int8 model can differ: On an AMD EPYC 7763 (AVX2 only) the int8 model found 13 people instead of 16 on a test frame with the balanced preset (sensitive: identical); on CPUs with AVX512-VNNI and in fp32 the counts are identical. This is how ONNX Runtime's int8 kernels behave without VNNI (u8×s8 products can saturate). On such PCs use the fp32 file `hae-n-ir-ext-kdf_lwir.onnx` (224 KB, fast enough on a PC). The Raspberry Pi (ARM) numbers above were measured with the int8 model on the Pi itself.
+
 ## Results (int8, IoU ≥ 0.5)
 
 | Set | AP50 at ×1.0 (default) | AP50 at ×1.5 | hae-s-ir AP50 (×1.5 / ×1.0) |

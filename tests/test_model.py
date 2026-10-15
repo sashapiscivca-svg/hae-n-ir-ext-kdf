@@ -31,6 +31,28 @@ def test_metadata_is_read_by_hae():
     assert Detector("hae-n-ir-ext-kdf", root=ROOT / "models").path == INT8
 
 
+def _has_vnni() -> bool:
+    """ONNX Runtime's x86 int8 kernels give slightly different results without VNNI (u8*s8 saturation); see README, Limitations."""
+    try:
+        flags = Path("/proc/cpuinfo").read_text()
+    except OSError:
+        return False
+    return "avx512_vnni" in flags or "avx_vnni" in flags
+
+
+FP32 = D / "hae-n-ir-ext-kdf_lwir.onnx"
+EXPECTED_FP32 = {"balanced": {"1-hituav-night-60m.png": 16, "3-hituav-night-100m-nadir.png": 12},
+                 "sensitive": {"1-hituav-night-60m.png": 21, "3-hituav-night-100m-nadir.png": 12}}
+
+
+@pytest.mark.parametrize("preset", ["balanced", "sensitive"])
+def test_fp32_box_counts_on_hituav_frames(preset):
+    det = Detector(FP32, preset=preset, threads=2)
+    got = {name: len(det.predict(FRAMES / name)) for name in EXPECTED_FP32[preset]}
+    assert got == EXPECTED_FP32[preset]
+
+
+@pytest.mark.skipif(not _has_vnni(), reason="int8 reference counts hold on x86 CPUs with VNNI (and in the browser); see README, Limitations")
 @pytest.mark.parametrize("preset", ["balanced", "sensitive"])
 def test_box_counts_on_hituav_frames(preset):
     det = Detector(INT8, preset=preset, threads=2)
