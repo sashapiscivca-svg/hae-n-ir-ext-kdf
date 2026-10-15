@@ -23,6 +23,16 @@ jobs:
           pip install "hae @ git+https://github.com/sashapiscivca-svg/hae@v1.0.0" pytest
       - name: Checksums
         run: cd models/hae-n-ir-ext-kdf && sha256sum -c SHA256SUMS
+      - name: CPU features and raw counts (int8 and fp32)
+        run: |
+          grep -m1 "model name" /proc/cpuinfo; grep -o -m1 -w "avx512_vnni\|avx_vnni\|avx512f\|avx2" /proc/cpuinfo | sort -u | tr "\n" " "; echo
+          python -c "
+          from hae.detector import Detector
+          for m in ('hae-n-ir-ext-kdf_lwir_int8.onnx', 'hae-n-ir-ext-kdf_lwir.onnx'):
+              for p in ('balanced', 'sensitive'):
+                  d = Detector('models/hae-n-ir-ext-kdf/' + m, preset=p, threads=2)
+                  print(m, p, [len(d.predict('examples/frames/' + f)) for f in ('1-hituav-night-60m.png', '3-hituav-night-100m-nadir.png')])
+          "
       - name: Box counts on HIT-UAV frames with the committed int8 model (no downloads)
         run: pytest -q tests
       - name: Example and CLI
